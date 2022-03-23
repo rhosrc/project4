@@ -3,8 +3,9 @@
 {% block content %}
 <h1>Your Memos</h1>
 <h3>Hello, {{ user }}! </h3>
-<a href="{% url 'memos_create' %}">Add a Memo</a>
-
+{% if perms.main_app.add_memo %}
+    <a href="{% url 'memos_create' %}">Add a Memo</a>
+{% endif %}
 
 
 
@@ -46,8 +47,12 @@
 </td>
 <td>
     <div>
+        {% if perms.main_app.change_memo %}
         <a href="{% url 'memos_update' memo.id %}">Edit</a>
+        {% endif %}
+        {% if perms.main_app.delete_memo %}
         <a href="{% url 'memos_delete' memo.id %}">Delete</a>
+        {% endif %}
     </div>
 </td>
 

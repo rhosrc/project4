@@ -3,11 +3,14 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Permission
+
 from .models import Memo
 from django.contrib.auth import login
 from .filters import MemoFilter
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from .forms import ProfileForm
 
 
 def home(request):
@@ -30,18 +33,22 @@ class MemoDetail(DetailView):
     model = Memo
     template_name = 'memos/detail.html'
 
-class MemoCreate(CreateView):
+
+class MemoCreate(PermissionRequiredMixin, CreateView):
+    permission_required = ('main_app.add_memo', 'main_app.change_memo', 'main_app.delete_memo')
     model = Memo
     fields = ('title', 'date')
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class MemoUpdate(UpdateView):
+class MemoUpdate(PermissionRequiredMixin, UpdateView):
+    permission_required = 'main_app.change_memo'
     model = Memo
     fields = ('title', 'date')
 
-class MemoDelete(DeleteView):
+class MemoDelete(PermissionRequiredMixin, DeleteView):
+    permission_required = 'main_app.delete_memo'
     model = Memo
     success_url = '/memos/'
 
@@ -67,11 +74,21 @@ def signup(request):
     if request.method == 'POST':
         # capture form inputs
         form = UserCreationForm(request.POST)
+        profile_form = ProfileForm(request.POST)
+        
         # validate form inputs (make sure everything we need is there)
-        if form.is_valid():
+        if form.is_valid() and profile_form.is_valid:
             # save the new user to the database
             user = form.save()
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            profile.save()
             # log the new user in
+            
+            if request.user.profile:
+                user.user_permissions.add(Permission.objects.get(codename='add_memo'))
+                user.user_permissions.add(Permission.objects.get(codename='change_memo'))
+                user.user_permissions.add(Permission.objects.get(codename='delete_memo'))
             login(request, user)
             # redirect to the memos index page
             return redirect('memos_index')
