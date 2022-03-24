@@ -3,6 +3,12 @@
 {% block content %}
 <h1>Your Memos</h1>
 <h3>Hello, {{ user }}! </h3>
+    {% if user.profile.is_admin%}
+    <h5>You are an admin.</h5>
+    {% else %}
+    <h5>You are an employee.</h5>
+    {% endif %}
+
 {% if perms.main_app.add_memo %}
     <a href="{% url 'memos_create' %}">Add a Memo</a>
 {% endif %}

@@ -12,14 +12,14 @@
     {{ profile_form.as_p }}
     {{ form.as_p }}
     <p>
-    <label>
-        {{ profile_form.is_admin }}
-    </label>
-    </p>
 <label>
-    <input type="checkbox" />
+    {{ profile_form.is_admin }}
     <span>I am an Admin</span>
 </label>
+</p>
+    <input type="checkbox" />
+    
+
 <br />
 <br />
     <button> Sign Up</button>

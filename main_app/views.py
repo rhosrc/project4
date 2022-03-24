@@ -73,19 +73,19 @@ def signup(request):
     # check for a POST request (as opposed to a GET request)
     if request.method == 'POST':
         # capture form inputs
-        form = UserCreationForm(request.POST)
+        user_form = UserCreationForm(request.POST)
         profile_form = ProfileForm(request.POST)
         
         # validate form inputs (make sure everything we need is there)
-        if form.is_valid() and profile_form.is_valid:
+        if user_form.is_valid() and profile_form.is_valid:
             # save the new user to the database
-            user = form.save()
+            user = user_form.save()
             profile = profile_form.save(commit=False)
             profile.user = user
             profile.save()
             # log the new user in
             login(request, user)
-            if request.user.profile.is_admin == True:
+            if user.profile.is_admin:
                 user.user_permissions.add(Permission.objects.get(codename='add_memo'))
                 user.user_permissions.add(Permission.objects.get(codename='change_memo'))
                 user.user_permissions.add(Permission.objects.get(codename='delete_memo'))
