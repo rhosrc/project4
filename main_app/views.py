@@ -35,7 +35,7 @@ class MemoDetail(DetailView):
 
 
 class MemoCreate(PermissionRequiredMixin, CreateView):
-    permission_required = ('main_app.add_memo', 'main_app.change_memo', 'main_app.delete_memo')
+    permission_required = 'main_app.add_memo'
     model = Memo
     fields = ('title', 'date')
     def form_valid(self, form):
@@ -84,12 +84,11 @@ def signup(request):
             profile.user = user
             profile.save()
             # log the new user in
-            
-            if request.user.profile:
+            login(request, user)
+            if request.user.profile.is_admin == True:
                 user.user_permissions.add(Permission.objects.get(codename='add_memo'))
                 user.user_permissions.add(Permission.objects.get(codename='change_memo'))
                 user.user_permissions.add(Permission.objects.get(codename='delete_memo'))
-            login(request, user)
             # redirect to the memos index page
             return redirect('memos_index')
         # if form is NOT valid
@@ -98,10 +97,12 @@ def signup(request):
             # redirect to signup page (/accounts/signup) and display error message
     # If GET request
         # render a signup page with a blank user creation form
-    form = UserCreationForm()  
+    form = UserCreationForm()
+    profile_form = ProfileForm()  
     context = {
         'form': form,
-        'error': error_message
+        'error': error_message,
+        'profile_form': profile_form
     }    
     return render(request, 'registration/signup.html', context)
 
